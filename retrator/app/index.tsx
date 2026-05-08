@@ -1,34 +1,27 @@
-import { useState, useRef } from 'react';
-import { StyleSheet, View, Platform, Alert } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as MediaLibrary from 'expo-media-library';
-import { captureRef } from 'react-native-view-shot';
+import { useState } from 'react';
+import { type ImageSource } from 'expo-image';
 
-import ImageViewer from '../components/ImageViewer';
 import Button from '../components/Button';
+import ImageViewer from '../components/ImageViewer';
 import IconButton from '../components/IconButton';
 import CircleButton from '../components/CircleButton';
 import EmojiPicker from '../components/EmojiPicker';
 import EmojiList from '../components/EmojiList';
 import EmojiSticker from '../components/EmojiSticker';
 
-const PlaceholderImage = require('@/assets/images/background-image.png');
+const PlaceholderImage = require('../assets/images/background-image.png');
 
 export default function Index() {
-  const [status, requestPermission] = MediaLibrary.usePermissions();
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [showAppOptions, setShowAppOptions] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [pickedEmoji, setPickedEmoji] = useState<string | null>(null);
-
-  const imageRef = useRef<View>(null);
-
-  if (status === null) {
-    requestPermission();
-  }
+  const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
+  const [showAppOptions, setShowAppOptions] = useState<boolean>(false);
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [pickedEmoji, setPickedEmoji] = useState<ImageSource | undefined>(undefined);
 
   const pickImageAsync = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
       allowsEditing: true,
       quality: 1,
     });
@@ -37,14 +30,12 @@ export default function Index() {
       setSelectedImage(result.assets[0].uri);
       setShowAppOptions(true);
     } else {
-      Alert.alert('Você não selecionou nenhuma imagem.');
+      alert('You did not select any image.');
     }
   };
 
   const onReset = () => {
     setShowAppOptions(false);
-    setPickedEmoji(null);
-    setSelectedImage(null);
   };
 
   const onAddSticker = () => {
@@ -56,48 +47,27 @@ export default function Index() {
   };
 
   const onSaveImageAsync = async () => {
-    if (Platform.OS !== 'web') {
-      try {
-        const localUri = await captureRef(imageRef, {
-          height: 440,
-          quality: 1,
-        });
-
-        await MediaLibrary.saveToLibraryAsync(localUri);
-        if (localUri) {
-          Alert.alert('Salvo!', 'A imagem foi salva na sua galeria.');
-        }
-      } catch (e) {
-        console.log(e);
-      }
-    } else {
-      Alert.alert('Funcionalidade indisponível', 'Salvar imagens ainda não está disponível na web.');
-    }
+    // implementaremos isso depois
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        <View ref={imageRef} collapsable={false}>
-          <ImageViewer
-            placeholderImageSource={PlaceholderImage}
-            selectedImage={selectedImage}
-          />
-          {pickedEmoji && <EmojiSticker imageSize={40} stickerSource={pickedEmoji} />}
-        </View>
+        <ImageViewer imgSource={PlaceholderImage} selectedImage={selectedImage} />
+        {pickedEmoji && <EmojiSticker imageSize={40} stickerSource={pickedEmoji} />}
       </View>
       {showAppOptions ? (
         <View style={styles.optionsContainer}>
           <View style={styles.optionsRow}>
-            <IconButton icon="refresh" label="Resetar" onPress={onReset} />
+            <IconButton icon="refresh" label="Reset" onPress={onReset} />
             <CircleButton onPress={onAddSticker} />
-            <IconButton icon="save-alt" label="Salvar" onPress={onSaveImageAsync} />
+            <IconButton icon="save-alt" label="Save" onPress={onSaveImageAsync} />
           </View>
         </View>
       ) : (
         <View style={styles.footerContainer}>
-          <Button theme="primary" label="Escolher uma foto" onPress={pickImageAsync} />
-          <Button label="Usar esta foto" onPress={() => setShowAppOptions(true)} />
+          <Button theme="primary" label="Choose a photo" onPress={pickImageAsync} />
+          <Button label="Use this photo" onPress={() => setShowAppOptions(true)} />
         </View>
       )}
       <EmojiPicker isVisible={isModalVisible} onClose={onModalClose}>
@@ -115,7 +85,6 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     flex: 1,
-    paddingTop: 58,
   },
   footerContainer: {
     flex: 1 / 3,
