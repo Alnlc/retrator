@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+    backgroundColor: '#3a3f47',
   },
   buttonIcon: {
     paddingRight: 8,
@@ -58,5 +59,6 @@ const styles = StyleSheet.create({
   buttonLabel: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
   },
 });
